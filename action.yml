@@ -66,6 +66,7 @@ runs:
         path: | 
           ${{ github.workspace }}
           !${{ github.workspace }}/.git
+        include-hidden-files: true
 
     - if: inputs.uploadBuildArtifact == 'true'
       name: Clean
