@@ -29,6 +29,10 @@ inputs:
     description: When set, current workspace will be overwritten with the content of the restore cache. Default is empty.
     required: false
     default: ''
+  uploadBuildArtifactName:
+    description: The name of the uploaded build artifact. Default is ${{ inputs.framework }}-${{ inputs.configuration }}.
+    required: false
+    default: '${{ inputs.framework }}-${{ inputs.configuration }}'
 runs:
   using: composite
   steps:
@@ -58,11 +62,11 @@ runs:
         fi
       shell: bash
 
-    - if: inputs.uploadBuildArtifact == 'true'
+    - if: always() && inputs.uploadBuildArtifact == 'true'
       name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.framework }}-${{ inputs.configuration }}
+        name: ${{ inputs.uploadBuildArtifactName }}
         path: | 
           ${{ github.workspace }}
           !${{ github.workspace }}/.git

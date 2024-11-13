@@ -44,6 +44,8 @@ with:
   uploadBuildArtifact: 'true'
   # When set, current workspace will be overwritten with the content of the restore cache.
   restoreCacheKey: ''
+  # The name of the uploaded build artifact.
+  uploadBuildArtifactName: '${{ inputs.framework }}-${{ inputs.configuration }}'
 ```
 
 ### Outputs
