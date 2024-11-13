@@ -30,7 +30,7 @@ inputs:
     required: false
     default: ''
   uploadBuildArtifactName:
-    description: The name of the uploaded build artifact. Default is ${{ inputs.framework }}-${{ inputs.configuration }}.
+    description: The name of the uploaded build artifact. Default, when left empty, is 'format('{0}-{1}', inputs.framework, inputs.configuration)'.
     required: false
     default: ''
 runs:
@@ -66,7 +66,7 @@ runs:
       name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.uploadBuildArtifactName != '' && inputs.uploadBuildArtifactName || inputs.framework + '-' + inputs.configuration }}
+        name: ${{ inputs.uploadBuildArtifactName != '' && inputs.uploadBuildArtifactName || format('{0}-{1}', inputs.framework, inputs.configuration) }}
         path: | 
           ${{ github.workspace }}
           !${{ github.workspace }}/.git
