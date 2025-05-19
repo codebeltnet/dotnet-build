@@ -2,17 +2,17 @@ name: .NET Build
 description: An opinionated action that builds specified projects or the solution itself including all of its dependencies.
 inputs:
   projects:
-    description: Optional path to the project(s) file to build. Pass empty to have MSBuild use the default behavior. Supports globbing.
+    description: Optional path to the project(s) file to build. Pass empty to have MSBuild use the default behavior. Supports globbing. Default is an empty string.
     required: true
-    default: 'src/**/*.csproj'
+    default: ''
   configuration:
     description: Defines the build configuration. Default is Debug.
     required: true
     default: 'Debug'
   framework:
-    description: Compiles for a specific framework. The framework must be defined in the project file. Default is net8.0.
+    description: Compiles for a specific framework. The framework must be defined in the project file. Default is an empty string.
     required: true
-    default: 'net8.0'
+    default: ''
   level:
     description: Sets the verbosity level of the command. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]. The default is quiet.
     required: true
@@ -51,12 +51,17 @@ runs:
 
     - name: Build
       run: |
+        frameworkArg=""
+        if [ "${{ inputs.framework }}" != "" ]; then
+          frameworkArg="--framework ${{ inputs.framework }}"
+        fi
+
         if [ "${{ inputs.projects }}" == "" ]; then
-            dotnet build --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.level }} --no-restore --framework ${{ inputs.framework }} ${{ inputs.buildSwitches }}
+            dotnet build --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.level }} --no-restore $frameworkArg ${{ inputs.buildSwitches }}
         else
             shopt -s globstar extglob
             for file in ${{ inputs.projects }}; do
-              dotnet build $file --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.level }} --no-restore --framework ${{ inputs.framework }} ${{ inputs.buildSwitches }}
+              dotnet build $file --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.level }} --no-restore $frameworkArg ${{ inputs.buildSwitches }}
               echo "Built '$file'"
             done
         fi
@@ -75,12 +80,17 @@ runs:
     - if: inputs.uploadBuildArtifact == 'true'
       name: Clean
       run: |
+        frameworkArg=""
+        if [ "${{ inputs.framework }}" != "" ]; then
+          frameworkArg="--framework ${{ inputs.framework }}"
+        fi
+
         if [ "${{ inputs.projects }}" == "" ]; then
-            dotnet clean --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.level }} --framework ${{ inputs.framework }}
+            dotnet clean --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.level }} $frameworkArg
         else
             shopt -s globstar
             for file in ${{ inputs.projects }}; do
-              dotnet clean $file --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.level }} --framework ${{ inputs.framework }}
+              dotnet clean $file --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.level }} $frameworkArg
               echo "Sweeped previous build for '$file'"
             done
         fi

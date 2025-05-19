@@ -28,12 +28,12 @@ uses: codebeltnet/dotnet-build@v1
 ```yaml
 with:
   # Optional path to the project(s) file to restore. Pass empty to have MSBuild use the default behavior.
-  # Supports globbing.
-  projects: 'src/**/*.csproj'
+  # Supports globbing. Default is an empty string.
+  projects: ''
   # Defines the build configuration.
   configuration: 'Release'
-  # Compiles for a specific framework. The framework must be defined in the project file.
-  framework: 'net8.0'
+  # Compiles for a specific framework. The framework must be defined in the project file. Default is an empty string.
+  framework: ''
   # Sets the verbosity level of the command.
   # Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]. 
   # The default is quiet.
