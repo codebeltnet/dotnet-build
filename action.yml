@@ -1,4 +1,4 @@
-name: .NET Build
+name: .NET Build from Codebelt
 description: An opinionated action that builds specified projects or the solution itself including all of its dependencies.
 inputs:
   projects:
@@ -13,42 +13,17 @@ inputs:
     description: Compiles for a specific framework. The framework must be defined in the project file. Default is an empty string.
     required: true
     default: ''
-  level:
+  verbosity-level:
     description: Sets the verbosity level of the command. Allowed values are q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]. The default is quiet.
     required: true
     default: 'quiet'
-  buildSwitches:
+  build-switches:
     description: Provides a way to fully customize the build. Default is empty. See https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-command-line-reference?view=vs-2022#switches for more information.
-    required: false
-    default: ''
-  uploadBuildArtifact:
-    description: Upload the generated build artifact. Default is to upload.
-    required: false
-    default: 'true'
-  restoreCacheKey:
-    description: When set, current workspace will be overwritten with the content of the restore cache. Default is empty.
-    required: false
-    default: ''
-  uploadBuildArtifactName:
-    description: The name of the uploaded build artifact. Default, when left empty, is 'format('{0}-{1}', inputs.framework, inputs.configuration)'.
     required: false
     default: ''
 runs:
   using: composite
   steps:
-    - if: inputs.restoreCacheKey != ''
-      name: Restore
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          ${{ github.workspace }}
-          !${{ github.workspace }}/.git
-          ~/.nuget/packages
-        key: ${{ inputs.restoreCacheKey }}
-        restore-keys: |
-          dotnet-restore-
-        fail-on-cache-miss: true
-
     - name: Build
       run: |
         frameworkArg=""
@@ -57,41 +32,12 @@ runs:
         fi
 
         if [ "${{ inputs.projects }}" == "" ]; then
-            dotnet build --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.level }} --no-restore $frameworkArg ${{ inputs.buildSwitches }}
+            dotnet build --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.verbosity-level }} --no-restore $frameworkArg ${{ inputs.build-switches }}
         else
             shopt -s globstar extglob
             for file in ${{ inputs.projects }}; do
-              dotnet build $file --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.level }} --no-restore $frameworkArg ${{ inputs.buildSwitches }}
+              dotnet build $file --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.verbosity-level }} --no-restore $frameworkArg ${{ inputs.build-switches }}
               echo "Built '$file'"
-            done
-        fi
-      shell: bash
-
-    - if: always() && inputs.uploadBuildArtifact == 'true'
-      name: Upload Build Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ inputs.uploadBuildArtifactName != '' && inputs.uploadBuildArtifactName || format('{0}-{1}', inputs.framework, inputs.configuration) }}
-        path: | 
-          ${{ github.workspace }}
-          !${{ github.workspace }}/.git
-        include-hidden-files: true
-
-    - if: inputs.uploadBuildArtifact == 'true'
-      name: Clean
-      run: |
-        frameworkArg=""
-        if [ "${{ inputs.framework }}" != "" ]; then
-          frameworkArg="--framework ${{ inputs.framework }}"
-        fi
-
-        if [ "${{ inputs.projects }}" == "" ]; then
-            dotnet clean --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.level }} $frameworkArg
-        else
-            shopt -s globstar
-            for file in ${{ inputs.projects }}; do
-              dotnet clean $file --configuration ${{ inputs.configuration }} --verbosity ${{ inputs.level }} $frameworkArg
-              echo "Sweeped previous build for '$file'"
             done
         fi
       shell: bash
